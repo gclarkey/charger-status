@@ -1,8 +1,8 @@
-#!/usr/local/bin/python3
 import logging
 import os
 import time
 
+import boto3
 import requests
 
 # park and ride
@@ -19,6 +19,8 @@ logging.basicConfig(
     format='%(asctime)s %(levelname)-8s %(message)s',
     level=logging.INFO,
     datefmt='%Y-%m-%d %H:%M:%S')
+
+snsClient = boto3.client('sns')
 
 
 def get_sockets():
@@ -51,15 +53,25 @@ def notify(available):
     if available:
         logging.info('Charger ' + chargerId + ' is available')
         macos_notify("Charger Available", 'Charger ' + chargerId + ' is available')
+        sns_notify("Charger Available", 'Charger ' + chargerId + ' is available')
     else:
         logging.info('Charger is not available')
         # macos_notify("Charger Busy", 'Charger ' + chargerId + ' is busy')
+        # sns_notify("Charger Busy", 'Charger ' + chargerId + ' is busy')
 
 
 def macos_notify(title, text):
     # os.system("""osascript -e 'display notification "{}" with title "{}"'""".format(text, title))
     # os.system("""osascript -e 'tell app "Finder" to display dialog "Hello World"'""".format(text, title))
     os.system("""osascript -e 'tell app "System Events" to display dialog "{}" with title "{}"'""".format(text, title))
+
+
+def sns_notify(title, text):
+    snsClient.publish(
+        TopicArn='arn:aws:sns:eu-west-2:702829006470:gc-status',
+        Message=text,
+        Subject=title
+    )
 
 
 def do_work():
