@@ -32,10 +32,14 @@ def determine_availability(sockets):
     for stationSocket in sockets:
         name = stationSocket['name']
         socket_status = stationSocket['socketStatusId']
-        start_time = stationSocket['chargeTransactionStartTime']
-        minutes_since_start = int((time.time() - start_time / 1000) / 60)
-        logging.info(
-            'Charger: {} is {}. Session started {} minutes ago'.format(name, socket_status, minutes_since_start))
+
+        if 'chargeTransactionStartTime' in stationSocket:
+            start_time = stationSocket['chargeTransactionStartTime']
+            minutes_since_start = int((time.time() - start_time / 1000) / 60)
+            logging.info(
+                'Charger: {} is {}. Session started {} minutes ago.'.format(name, socket_status, minutes_since_start))
+        else:
+            logging.info('Charger: {} is {}.'.format(name, socket_status))
 
         if socket_status == 'AVAILABLE':
             available = True
